@@ -810,6 +810,8 @@ func applyProxyClassToStatefulSet(pc *tsapi.ProxyClass, ss *appsv1.StatefulSet, 
 		ss.Spec.Template.ObjectMeta.Annotations = mergeStatefulSetLabelsOrAnnots(ss.Spec.Template.ObjectMeta.Annotations, wantsPodAnnots, tailscaleManagedAnnotations)
 	}
 	ss.Spec.Template.Spec.SecurityContext = wantsPod.SecurityContext
+	ss.Spec.Template.Spec.HostNetwork = wantsPod.HostNetwork
+	ss.Spec.Template.Spec.DNSPolicy = wantsPod.DNSPolicy
 	ss.Spec.Template.Spec.ImagePullSecrets = wantsPod.ImagePullSecrets
 	ss.Spec.Template.Spec.NodeName = wantsPod.NodeName
 	ss.Spec.Template.Spec.NodeSelector = wantsPod.NodeSelector
@@ -856,6 +858,9 @@ func applyProxyClassToStatefulSet(pc *tsapi.ProxyClass, ss *appsv1.StatefulSet, 
 				break
 			}
 		}
+	}
+	if additionalInitContainers := wantsPod.AdditionalInitContainers; len(additionalInitContainers) > 0 {
+		ss.Spec.Template.Spec.InitContainers = append(ss.Spec.Template.Spec.InitContainers, additionalInitContainers...)
 	}
 	return ss
 }

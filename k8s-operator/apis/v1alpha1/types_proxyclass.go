@@ -134,6 +134,15 @@ type Pod struct {
 	// https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#security-context-2
 	// +optional
 	SecurityContext *corev1.PodSecurityContext `json:"securityContext,omitempty"`
+	// HostNetwork optionally runs the Proxy's Pod on the hosts network.
+	// By default Tailscale Kubernetes operator does not use the host's networking.
+	// When enabled, it is like you will also want to set dnsPolicy to 'ClusterFirstWithHostNet'
+	// https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#hostnetwork
+	// +optional
+	HostNetwork bool `json:"hostNetwork,omitempty"`
+	// DnsPolicy specified for the Proxy pod.
+	// Typically omitted and left to the default, unless 'hostNetwork' has been enabled.
+	DNSPolicy   corev1.DNSPolicy `json:"dnsPolicy,omitempty"`
 	// Proxy Pod's image pull Secrets.
 	// https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#PodSpec
 	// +optional
@@ -159,6 +168,13 @@ type Pod struct {
 	// https://kubernetes.io/docs/concepts/scheduling-eviction/topology-spread-constraints/
 	// +optional
 	TopologySpreadConstraints []corev1.TopologySpreadConstraint `json:"topologySpreadConstraints,omitempty"`
+	// AdditionalInitContainers that can be added to the proxy Pod for custom configuration.
+	// Any additional containers will be appended to the initContainers list, executing
+	// after the default TailscaleInitContainer has processed.
+	// Note: this will not pull in any other settings defined in your ProxyClass' "Pod" (this) block.
+	// https://kubernetes.io/docs/reference/kubernetes-api/workload-resources/pod-v1/#containers
+	// +optional
+	AdditionalInitContainers []corev1.Container `json:"additionalInitContainers,omitempty"`
 }
 
 // +kubebuilder:validation:XValidation:rule="!(has(self.serviceMonitor) && self.serviceMonitor.enable  && !self.enable)",message="ServiceMonitor can only be enabled if metrics are enabled"
